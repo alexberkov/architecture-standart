@@ -1,0 +1,42 @@
+@startuml
+title Схема интеграции приложений банка "Стандарт"
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(client, "Клиент", "Клиент банка 'Стандарт'")
+Person(frontOfficeWorker, "Сотрудник", "Работник отделения банка 'Стандарт'")
+Person(backOfficeWorker, "Сотрудник", "Менеджер отдела депозитов/кредитов банка 'Стандарт'")
+Person(callCenterWorker, "Сотрудник", "Работник кол-центра банка 'Стандарт'")
+Person(partnerCallCenterWorker, "Сотрудник", "Работник партнерского кол-центра")
+
+System(StandartSystem, "IT-система банка 'Стандарт'")
+
+Container_Boundary(StandartSystem, "IT-система банка 'Стандарт'") {
+  Container(webSite, "Сайт", "PHP, React.js")
+  Container(internetBank, "Интернет-банк", "ASP.NET MVC 4.5, MS SQL")
+  Container(bankingSystem, "АБС", "Delphi, PL-SQL, Oracle", "Автоматизированная банковская система для учета операций")
+  Container(callCenterSystem, "Система кол-центра", "React.js, Java Spring Boot, PostgreSQL")
+  Container(telecomGateway, "СМС-шлюз телеком оператора")
+}
+
+System_Ext(telecomCarrier, "Телеком-оператор")
+System_Ext(partnerCallCenterSystem, "Система партнерского кол-центра")
+
+Rel(client, webSite, "Получает маркетинговую информацию")
+Rel(client, internetBank, "Осуществляет платежи / открывает дебетовые карты")
+
+Rel(frontOfficeWorker, bankingSystem, "Передача/получение данных о заявках клиентов")
+Rel(callCenterWorker, bankingSystem, "Передача/получение данных о заявках клиентов")
+Rel(backOfficeWorker, bankingSystem, "Обработка заявок клиентов")
+
+Rel(callCenterWorker, callCenterSystem, "Обработка обращений клиентов")
+
+Rel(bankingSystem, telecomGateway, "Уведомление о решении по заявке")
+Rel(telecomGateway, telecomCarrier, "Уведомление о решении по заявке")
+Rel(telecomCarrier, client, "Уведомление о решении по заявке")
+
+Rel(partnerCallCenterWorker, partnerCallCenterSystem, "Обработка обращений клиентов")
+
+@enduml
