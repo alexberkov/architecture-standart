@@ -1,0 +1,40 @@
+@startuml
+title Схема IT-системы банка 'Стандарт'
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(customer, "Клиент", "Потенциальный клиент банка стандарт 'Стандарт'")
+Person(client, "Клиент", "Клиент банка 'Стандарт'")
+Person(backOfficeWorker, "Сотрудник", "Работник бэк-офиса банка 'Стандарт'")
+Person(callCenterWorker, "Сотрудник", "Работник кол-центра банка 'Стандарт'")
+Person(partnerCallCenterWorker, "Сотрудник", "Работник партнерского кол-центра")
+
+System(StandartSystem, "IT-система банка 'Стандарт'")
+
+Container_Boundary(StandartSystem, "IT-система банка 'Стандарт'") {
+  System(internetBankSystem, "Система интернет-банка 'Стандарт'")
+  System(bankingSystem, "АБС банка 'Стандарт'")
+}
+
+System_Ext(telecomCarrier, "Телеком-оператор")
+System_Ext(callCenterSystem, "Система кол-центра", "React.js, Java Spring Boot, PostgreSQL")
+
+Rel(customer, StandartSystem, "Заявка на открытие депозита")
+Rel(client, internetBankSystem, "Заявка на открытие персонализированного депозита")
+
+Rel(backOfficeWorker, bankingSystem, "Обновление ставок / подтверждение заявок")
+Rel(internetBankSystem, bankingSystem, "Передача заявок / получение подтверждений")
+
+Rel(callCenterWorker, callCenterSystem, "Обработка заявок / просмотр актуальных ставок")
+Rel(callCenterSystem, internetBankSystem, "Передача заявок")
+
+Rel(internetBankSystem, telecomCarrier, "Отправка СМС-уведомлений")
+Rel(telecomCarrier, customer, "Отправка СМС-уведомлений")
+Rel(telecomCarrier, client, "Отправка СМС-уведомлений")
+
+Rel(callCenterWorker, partnerCallCenterWorker, "Передает данные по ставкам в виде файлов")
+Rel(callCenterSystem, bankingSystem, "Получение акуальных ставок")
+
+@enduml

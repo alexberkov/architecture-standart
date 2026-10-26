@@ -1,0 +1,69 @@
+@startuml
+title Детальная схема IT-системы банка 'Стандарт'
+
+top to bottom direction
+
+!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Component.puml
+
+Person(customer, "Клиент", "Потенциальный клиент банка стандарт 'Стандарт'")
+Person(client, "Клиент", "Клиент банка 'Стандарт'")
+Person(backOfficeWorker, "Сотрудник", "Работник бэк-офиса банка 'Стандарт'")
+Person(callCenterWorker, "Сотрудник", "Работник кол-центра банка 'Стандарт'")
+Person(partnerCallCenterWorker, "Сотрудник", "Работник партнерского кол-центра")
+
+Rel(callCenterWorker, partnerCallCenterWorker, "Передает данные по ставкам в виде файлов")
+
+System(StandartSystem, "IT-система банка 'Стандарт'")
+
+Container_Boundary(StandartSystem, "IT-система банка 'Стандарт'") {
+  Container(webSite, "Сайт", "JavaScript, React", "Веб-сайт банка 'Стандарт'")
+  Container(internetBankWebApp, "JavaScript, React", "Веб-клиент интернет-банка 'Стандарт'")
+
+  Container(Gateway, "API-шлюз", "Nginx", "Балансировщик запросов")
+
+  Container(paymentService, "Сервис платежей", "C#, ASP.NET", "Сервис для проведения платежей интернет-банка")
+  Container(depositService, "Сервис депозитов", "C#, ASP.NET", "Сервис для обработки заявок по депозитам интернет-банка")
+  Container(notificationService, "Сервис уведомлений", "C#, ASP.NET", "Сервис для отправки СМС-уведомлений интернет-банка")
+  ContainerDb(internetBankDB, "БД интернет-банка", "MS SQL", "База данных интернет-банка")
+
+  Container(bankingSystemClient, "Клиент АБС", "Delphi", "Десктоп-клиент автоматизированной банковской системы")
+  Container(bankingSystemAPI, "API АБС", "Java, Sping", "API автоматизированной банковской системы")
+  ContainerDb(bankingSystemDB, "База данных АБС", "Oracle", "База данных автоматизированной банковской системы")
+
+  Container(messageQueue, "Очередь сообщений", "Kafka", "Очередь сообщений для обмена данными между системами")
+}
+
+System_Ext(telecomCarrier, "Телеком-оператор")
+System_Ext(callCenterSystem, "Система кол-центра", "React.js, Java Spring Boot, PostgreSQL")
+
+Rel(customer, webSite, "Оставляет заявку на депозит", "HTTPS, JSON")
+Rel(webSite, callCenterSystem, "Отправляет заявку на открытие депозита", "HTTPS, JSON")
+Rel(callCenterWorker, callCenterSystem, "Обрабатывает заявки потенциальных клиентов / просматривает актуальнык ставки")
+Rel(callCenterSystem, Gateway, "Отправляет заявку на открытие депозита для потенциального клиента", "HTTPS, JSON")
+Rel(callCenterSystem, messageQueue, "Получает сообщения об изменении ставок")
+
+Rel(client, internetBankWebApp, "Осуществляет платежи", "HTTPS, JSON")
+Rel(client, internetBankWebApp, "Оставляет заявку на персонализированный депозит", "HTTPS, JSON")
+
+Rel(internetBankWebApp, Gateway, "Отправляет заявки по депозитам / запросы по платежам", "HTTPS, JSON")
+
+Rel(Gateway, paymentService, "Передает запросы по платежам", "HTTPS, JSON")
+Rel(paymentService, internetBankDB, "Чтение/запись информации")
+Rel(paymentService, messageQueue, "Публикует сообщения об уведомлениях")
+
+Rel(Gateway, depositService, "Передает запросы по заявкам на депозиты", "HTTPS, JSON")
+Rel(depositService, internetBankDB, "Чтение/запись информации")
+
+Rel(depositService, messageQueue, "Публикует сообщения о заявках / Получает сообщения о подтверждении / Публикует сообщения об уведомлениях")
+Rel(bankingSystemAPI, messageQueue, "Получает сообщения о заявках / Публикует сообщения о подтверждении / Публикует сообщения об изменении ставок")
+
+Rel(backOfficeWorker, bankingSystemClient, "Подтверждает заявки клиентов / обновляет ставки по депозитам")
+Rel(bankingSystemClient, bankingSystemAPI, "Передает запросы работников бэк-офиса")
+Rel(bankingSystemAPI, bankingSystemDB, "Чтение/запись информации")
+
+Rel(notificationService, messageQueue, "Получает сообщения о уведомлениях")
+Rel(notificationService, telecomCarrier, "Отправляет уведомления оператору")
+Rel(telecomCarrier, client, "Отправляет СМС-уведомления клиенту")
+Rel(telecomCarrier, customer, "Отправляет СМС-уведомления потнециальному клиенту")
+
+@enduml
